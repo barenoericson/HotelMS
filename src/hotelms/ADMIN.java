@@ -116,7 +116,9 @@ public class ADMIN extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-    
+    USERS u = new USERS();
+    u.setVisible(true);
+    this.dispose();
 
     }//GEN-LAST:event_jButton3ActionPerformed
 

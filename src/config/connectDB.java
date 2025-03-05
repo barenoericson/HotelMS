@@ -1,11 +1,8 @@
 package config;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import javax.swing.JTable;
+import net.proteanit.sql.DbUtils;
 
 public class connectDB {
     private Connection connect;
@@ -20,7 +17,7 @@ public class connectDB {
         }
     }
 
-    // Function to save data
+    // Function to insert data using prepared statements
     public int insertData(String sql, Object... params) {
         int result = 0;
         try (PreparedStatement pst = connect.prepareStatement(sql)) {
@@ -31,6 +28,7 @@ public class connectDB {
             System.out.println("Inserted Successfully!");
         } catch (SQLException ex) {
             System.out.println("Connection Error: " + ex.getMessage());
+            ex.printStackTrace(); // Debugging
         }
         return result;
     }
@@ -42,13 +40,17 @@ public class connectDB {
     }
 
     // Function to check if a field exists
-    public boolean fieldExists(String fieldName, String value) throws SQLException {
-        String sql = "SELECT 1 FROM `account` WHERE " + fieldName + " = ?";
+    public boolean fieldExists(String tableName, String columnName, String value) {
+        String sql = "SELECT 1 FROM " + tableName + " WHERE " + columnName + " = ? LIMIT 1";
         try (PreparedStatement pstmt = connect.prepareStatement(sql)) {
             pstmt.setString(1, value);
             ResultSet result = pstmt.executeQuery();
             return result.next();
+        } catch (SQLException e) {
+            System.out.println("Database Error: " + e.getMessage());
+            e.printStackTrace(); // Debugging
         }
+        return false;
     }
 
     // Function to validate login
@@ -65,7 +67,7 @@ public class connectDB {
         return null;
     }
 
-    // Close the connection
+    // Function to close the database connection
     public void closeConnection() {
         try {
             if (connect != null && !connect.isClosed()) {
@@ -76,20 +78,16 @@ public class connectDB {
             System.out.println("Error closing connection: " + ex.getMessage());
         }
     }
-    
-    //Function to save data
-        public int insertData(String sql){
-            int result;
-            try{
-                PreparedStatement pst = connect.prepareStatement(sql);
-                pst.executeUpdate();
-                System.out.println("Inserted Successfully!");
-                pst.close();
-                result =1;
-            }catch(SQLException ex){
-                System.out.println("Connection Error: "+ex);
-                result =0;
-            }
-            return result;
+
+    // Function to display records in a JTable
+    public void displayData(JTable studentTable) {
+        try {
+            ResultSet rs = getData("SELECT * FROM tbl_student");
+            studentTable.setModel(DbUtils.resultSetToTableModel(rs));
+            rs.close();
+        } catch (SQLException ex) {
+            System.out.println("Error: " + ex.getMessage());
+            ex.printStackTrace(); // Debugging
         }
+    }
 }

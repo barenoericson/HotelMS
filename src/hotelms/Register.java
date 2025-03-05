@@ -7,7 +7,9 @@ package hotelms;
 
 import config.connectDB;
 import java.sql.SQLException;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -299,48 +301,66 @@ public class Register extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-            
 String First_name = firstname.getText().trim();
 String Last_name = lastname.getText().trim();
-String email = Email.getText().trim();
-String User_type = usertype.getText().trim(); 
+String email = Email.getText().trim().toLowerCase();
+String User_type = usertype.getText().trim();
 String user_name = un.getText().trim();
 String Password = password.getText().trim();
+
 
 connectDB connect = new connectDB();
 
 if (First_name.isEmpty()) {
-    JOptionPane.showMessageDialog(null, "Please Enter your First Name!", "Error", JOptionPane.WARNING_MESSAGE);
+    JOptionPane.showMessageDialog(null, "Please enter your First Name!", "Error", JOptionPane.WARNING_MESSAGE);
 } else if (Last_name.isEmpty()) {
-    JOptionPane.showMessageDialog(null, "Please Enter your Last Name!", "Error", JOptionPane.WARNING_MESSAGE);
+    JOptionPane.showMessageDialog(null, "Please enter your Last Name!", "Error", JOptionPane.WARNING_MESSAGE);
 } else if (email.isEmpty()) {
-    JOptionPane.showMessageDialog(null, "Please Enter an Email!", "Error", JOptionPane.WARNING_MESSAGE);
+    JOptionPane.showMessageDialog(null, "Please enter an Email!", "Error", JOptionPane.WARNING_MESSAGE);
+} else if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+    JOptionPane.showMessageDialog(null, "Please enter a valid Email Address!", "Error", JOptionPane.WARNING_MESSAGE);
 } else if (User_type.isEmpty()) {
     JOptionPane.showMessageDialog(null, "Please select a User Type!", "Error", JOptionPane.WARNING_MESSAGE);
 } else if (user_name.isEmpty()) {
-    JOptionPane.showMessageDialog(null, "Please Enter a Username!", "Error", JOptionPane.WARNING_MESSAGE);
+    JOptionPane.showMessageDialog(null, "Please enter a Username!", "Error", JOptionPane.WARNING_MESSAGE);
 } else if (Password.isEmpty()) {
-    JOptionPane.showMessageDialog(null, "Please Enter a Password!", "Error", JOptionPane.WARNING_MESSAGE);
+    JOptionPane.showMessageDialog(null, "Please enter a Password!", "Error", JOptionPane.WARNING_MESSAGE);
 } else if (Password.length() < 8) {
     JOptionPane.showMessageDialog(null, "Password must be at least 8 characters long!", "Error", JOptionPane.WARNING_MESSAGE);
 } else {
     try {
-        if (connect.fieldExists("username", user_name)) {
+        // Ensure fieldExists method calls are correct
+        if (connect.fieldExists("account", "username", user_name)) {
             JOptionPane.showMessageDialog(null, "Username already taken!", "Error", JOptionPane.WARNING_MESSAGE);
-        } else if (connect.fieldExists("Email", email)) {
+        } else if (connect.fieldExists("account", "email", email)) {
             JOptionPane.showMessageDialog(null, "Email already used!", "Error", JOptionPane.WARNING_MESSAGE);
         } else {
-            connect.insertData("INSERT INTO `account` (firstname, lastname, username, Email, usertype, password) VALUES ('"
-                    + First_name + "','" + Last_name + "','" + user_name + "','" + email + "','" + User_type + "','" + Password + "')");
-            JOptionPane.showMessageDialog(null, "Registered Successfully!");
+            // Proper SQL insert with default status as 'Pending'
+            String sql = "INSERT INTO account (firstname, lastname, username, email, usertype, password, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            int rowsInserted = connect.insertData(sql, First_name, Last_name, user_name, email, User_type, Password, "Pending");
 
-            new loginn().setVisible(true);
-            this.dispose();
+            if (rowsInserted > 0) {
+                JOptionPane.showMessageDialog(null, "Registered Successfully!");
+
+                new loginn().setVisible(true);
+
+                // Ensure proper window closing
+                JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(un);
+                if (frame != null) {
+                    frame.dispose();
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Registration failed!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
-    } catch (SQLException e) {
+    } catch (Exception e) { // Catch all exceptions
+        e.printStackTrace(); // Print full error in console
         JOptionPane.showMessageDialog(null, "Database Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
+
+
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
